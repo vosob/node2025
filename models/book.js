@@ -14,6 +14,10 @@ const bookSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
   },
   {
     versionKey: false,

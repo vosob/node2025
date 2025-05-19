@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 import * as Joi from "../schemas/usersSchemas.js";
 import User from "../models/user.js";
@@ -52,10 +53,30 @@ const login = async (req, res, next) => {
       return res.status(401).send({ message: "Email or password incorrect" });
     }
 
-    res.send({ token: "TOKEN" });
+    const token = jwt.sign(
+      {
+        id: user._id,
+        name: user.name,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    await User.findOneAndUpdate(user._id, { token });
+
+    res.send({ token });
   } catch (error) {
     next(error);
   }
 };
 
-export default { register, login };
+const logout = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { token: null });
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { register, login, logout };

@@ -2,8 +2,9 @@ import Book from "../models/book.js";
 import { booksSchema } from "../schemas/booksSchema.js";
 
 const getBooks = async (req, res, next) => {
+  console.log(req.user);
   try {
-    const books = await Book.find();
+    const books = await Book.find({ ownerId: req.user.id });
 
     res.status(200).send(books);
   } catch (error) {
@@ -21,6 +22,12 @@ const getBook = async (req, res, next) => {
       return res.status(404).send("Book not found :(");
     }
 
+    // перевірка чи належить книга конкретному юзеру
+    if (book.ownerId.toString() !== req.user.id) {
+      // return res.status(403).send("Access denied");
+      return res.status(404).send("Book not found :(");
+    }
+
     res.status(200).send(book);
   } catch (error) {
     next(error);
@@ -35,7 +42,7 @@ const createBook = async (req, res, next) => {
   }
 
   try {
-    const book = await Book.create(value);
+    const book = await Book.create({ ...value, ownerId: req.user.id });
     return res.status(201).json(book);
   } catch (err) {
     next(err);
