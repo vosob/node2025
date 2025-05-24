@@ -1,12 +1,12 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import * as Joi from "../schemas/usersSchemas.js";
+import { registerSchema } from "../schemas/usersSchemas.js";
 import User from "../models/user.js";
 
 const register = async (req, res, next) => {
   const user = req.body;
-  const { error } = Joi.registerSchema.validate(user);
+  const { error } = registerSchema.validate(user);
 
   if (error) {
     return res.status(400).send({ message: error.message });

@@ -1,8 +1,10 @@
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+
 import Book from "../models/book.js";
 import { booksSchema } from "../schemas/booksSchema.js";
 
 const getBooks = async (req, res, next) => {
-  console.log(req.user);
   try {
     const books = await Book.find({ ownerId: req.user.id });
 
@@ -34,15 +36,60 @@ const getBook = async (req, res, next) => {
   }
 };
 
+// const createBook = async (req, res, next) => {
+//   const { error, value } = booksSchema.validate(req.body);
+//   console.log("REQ FILE:", req.file);
+
+//   if (error) {
+//     return res.status(400).json({ message: error.details[0].message });
+//   }
+
+//   if (!req.file) {
+//     return res.status(400).json({ message: "Image is required" });
+//   }
+
+//   await fs.rename(
+//     req.file.path,
+//     path.join(process.cwd(), "public/images", req.file.filename)
+//   );
+
+//   try {
+//     const book = await Book.create({
+//       ...value,
+//       ownerId: req.user.id,
+//       image: req.file.filename,
+//     });
+//     return res.status(201).json(book);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
 const createBook = async (req, res, next) => {
   const { error, value } = booksSchema.validate(req.body);
+  console.log("REQ FILE:", req.file);
 
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
 
+  let imageFilename = null;
+
+  if (req.file) {
+    // Переміщаємо файл у папку з публічними зображеннями
+    await fs.rename(
+      req.file.path,
+      path.join(process.cwd(), "public/images", req.file.filename)
+    );
+    imageFilename = req.file.filename;
+  }
+
   try {
-    const book = await Book.create({ ...value, ownerId: req.user.id });
+    const book = await Book.create({
+      ...value,
+      ownerId: req.user.id,
+      image: imageFilename,
+    });
     return res.status(201).json(book);
   } catch (err) {
     next(err);
@@ -58,6 +105,17 @@ const updateBook = async (req, res, next) => {
   }
 
   try {
+    const book = await Book.findById(id);
+
+    if (book === null) {
+      return res.status(404).send("Book not found :(");
+    }
+
+    // Перевірка чи належить книга конкретному юзеру
+    if (book.ownerId.toString() !== req.user.id) {
+      return res.status(404).send("Book not found :(");
+    }
+
     const updBook = await Book.findOneAndUpdate(
       { _id: id },
       { $set: value },
@@ -80,11 +138,17 @@ const deleteBook = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    const result = await Book.findByIdAndDelete(id);
+    const book = await Book.findById(id);
 
-    if (result === null) {
+    if (book === null) {
       return res.status(404).send("Book not found :(");
     }
+
+    if (book.ownerId.toString() !== req.user.id) {
+      return res.status(404).send("Book not found :(");
+    }
+
+    await Book.findByIdAndDelete(id);
     res.send({ id });
   } catch (error) {
     next(error);
