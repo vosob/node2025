@@ -5,5 +5,5 @@ export const booksSchema = Joi.object({
   year: Joi.number().required(),
   author: Joi.string().required(),
   rating: Joi.number().required(),
-  completed: Joi.boolean().required(),
+  completed: Joi.boolean(),
 });
