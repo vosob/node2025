@@ -24,6 +24,12 @@ const bookSchema = new mongoose.Schema(
       required: false,
       default: null,
     },
+    completed: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+
     ownerId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,

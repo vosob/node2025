@@ -35,36 +35,6 @@ const getBook = async (req, res, next) => {
     next(error);
   }
 };
-
-// const createBook = async (req, res, next) => {
-//   const { error, value } = booksSchema.validate(req.body);
-//   console.log("REQ FILE:", req.file);
-
-//   if (error) {
-//     return res.status(400).json({ message: error.details[0].message });
-//   }
-
-//   if (!req.file) {
-//     return res.status(400).json({ message: "Image is required" });
-//   }
-
-//   await fs.rename(
-//     req.file.path,
-//     path.join(process.cwd(), "public/images", req.file.filename)
-//   );
-
-//   try {
-//     const book = await Book.create({
-//       ...value,
-//       ownerId: req.user.id,
-//       image: req.file.filename,
-//     });
-//     return res.status(201).json(book);
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-
 const createBook = async (req, res, next) => {
   const { error, value } = booksSchema.validate(req.body);
   console.log("REQ FILE:", req.file);
